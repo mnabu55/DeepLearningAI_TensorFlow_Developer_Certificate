@@ -41,7 +41,9 @@ model_2.compile(optimizer='adam',
                 metrics=['accuracy'])
 
 # train the model
-model_2.fit(tf.expand_dims(training_images, axis=-1), training_labels, epochs=5)
+#model_2.fit(tf.expand_dims(training_images, axis=-1), training_labels, epochs=5)
+model_2.fit(training_images, training_labels, epochs=5)
 
 # evaluate the model
-model_2.evaluate(tf.expand_dims(test_images, axis=-1), test_labels)
+#model_2.evaluate(tf.expand_dims(test_images, axis=-1), test_labels)
+model_2.evaluate(test_images, test_labels)
