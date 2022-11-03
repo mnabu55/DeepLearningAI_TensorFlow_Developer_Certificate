@@ -4,7 +4,7 @@ import zipfile
 import tensorflow as tf
 
 # Unzip the dataset
-local_zip = '../horse-or-human.zip'
+local_zip = './horse-or-human.zip'
 zip_ref = zipfile.ZipFile(local_zip, 'r')
 zip_ref.extractall('./horse-or-human')
 zip_ref.close()
@@ -44,14 +44,14 @@ train_datagen = ImageDataGenerator(rescale=1./255)
 train_generator = train_datagen.flow_from_directory(
     './horse-or-human',
     target_size=(300, 300),
-    batch_size=128,
+    batch_size=32,
     class_mode='binary'
 )
 
 history = model.fit(
     train_generator,
-    steps_per_epoch=8,
-    epochs=1,
+    steps_per_epoch=32,
+    epochs=5,
     verbose=1
 )
 
