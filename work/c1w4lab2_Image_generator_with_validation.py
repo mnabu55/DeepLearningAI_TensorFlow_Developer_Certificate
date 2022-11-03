@@ -54,8 +54,8 @@ validation_generator = validation_datagen.flow_from_directory(
 # fit the model
 model.fit(
     train_generator,
-    steps_per_epoch=8,
-    epochs=5,
+    steps_per_epoch=32,
+    epochs=15,
     verbose=1,
     validation_data=validation_generator,
     validation_steps=8
