@@ -2,3 +2,6 @@ tensorflow==2.7.0
 numpy
 matplotlib
 scipy
+pillow
+pandas
+jupyter
