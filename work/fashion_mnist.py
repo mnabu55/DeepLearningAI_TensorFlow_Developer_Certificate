@@ -1,4 +1,7 @@
 import tensorflow as tf
+
+print("tensorflow: ", tf.__version__)
+
 fmist = tf.keras.datasets.fashion_mnist
 (training_images, training_labels), (test_images, test_labels) = fmist.load_data()
 
