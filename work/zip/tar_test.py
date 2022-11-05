@@ -6,9 +6,9 @@ import tarfile
 
 # Unzip training dataset
 t = tarfile.open("test.tar.gz", "r")
-t.extractall("./test")
+t.extractall("./zip")
 
-p_file = pathlib.Path('test/test.txt')
+p_file = pathlib.Path('test.txt')
 
 print(p_file)
 print(type(p_file))
