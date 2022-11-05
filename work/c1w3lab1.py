@@ -35,7 +35,7 @@ model.compile(optimizer='adam',
 # train the model
 history = model.fit(training_images, training_labels, epochs=5)
 
-# evaluate on the test set
+# evaluate on the zip set
 test_loss = model.evaluate(test_images, test_labels)
 
 
@@ -43,7 +43,7 @@ import matplotlib.pyplot as plt
 
 
 #-----------------------------------------------------------
-# Retrieve a list of list results on training and test data
+# Retrieve a list of list results on training and zip data
 # sets for each training epoch
 #-----------------------------------------------------------
 acc = history.history['accuracy']
