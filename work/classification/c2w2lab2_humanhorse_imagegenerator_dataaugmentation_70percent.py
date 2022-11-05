@@ -4,41 +4,48 @@ import zipfile
 import tensorflow as tf
 
 # Unzip the dataset
-local_zip = './cats_and_dogs_filtered.zip'
-zip_ref = zipfile.ZipFile(local_zip, 'r')
-zip_ref.extractall()
+zip_ref = zipfile.ZipFile('./horse-or-human.zip', 'r')
+zip_ref.extractall('tmp/horse-or-human')
+
+zip_ref = zipfile.ZipFile('./validation-horse-or-human.zip', 'r')
+zip_ref.extractall('tmp/validation-horse-or-human')
+
 zip_ref.close()
 
 
 import os
 
-base_dir = 'cats_and_dogs_filtered'
+# base_dir = 'cats_and_dogs_filtered'
+# train_dir = os.path.join(base_dir, 'train')
+# validation_dir = os.path.join(base_dir, 'validation')
 
-train_dir = os.path.join(base_dir, 'train')
-validation_dir = os.path.join(base_dir, 'validation')
+train_horse_dir = os.path.join('tmp/horse-or-human', 'horses')
+train_human_dir = os.path.join('tmp/horse-or-human', 'humans')
+train_horse_filenames = os.listdir(train_horse_dir)
+train_human_filenames = os.listdir(train_human_dir)
 
-train_cats_dir = os.path.join(train_dir, 'cats')
-train_dogs_dir = os.path.join(train_dir, 'dogs')
-train_cats_filenames = os.listdir(train_cats_dir)
-train_dogs_filenames = os.listdir(train_dogs_dir)
-
-print("len(train_cats_filenames):", len(train_cats_filenames))
-print("len(train_dogs_filenames):", len(train_dogs_filenames))
+print("len(train_cats_filenames):", len(train_horse_filenames))
+print("len(train_dogs_filenames):", len(train_human_filenames))
 
 
 model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(150, 150, 3)),
+    tf.keras.layers.Conv2D(16, (3, 3), activation='relu', input_shape=(300, 300, 3)),
     tf.keras.layers.MaxPooling2D(2, 2),
     tf.keras.layers.Conv2D(32, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2, 2),
     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2, 2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+    tf.keras.layers.MaxPooling2D(2, 2),
+
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(512, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
 
-model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=0.001),
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=1e-4),
               loss='binary_crossentropy',
               metrics=["accuracy"])
 
@@ -59,26 +66,27 @@ train_datagen = ImageDataGenerator(
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
-    train_dir,
-    target_size=(150, 150),
+    './tmp/horse-or-human',
+    target_size=(300, 300),
     batch_size=20,
     class_mode='binary'
 )
 
 validation_generator = test_datagen.flow_from_directory(
-    validation_dir,
-    target_size=(150, 150),
+    './tmp/validation-horse-or-human',
+    target_size=(300, 300),
     batch_size=20,
     class_mode='binary'
 )
 
+EPOCHS = 20
 
 history = model.fit(
     train_generator,
-    steps_per_epoch=100,
-    epochs=20,
+    steps_per_epoch=8,
+    epochs=EPOCHS,
     validation_data=validation_generator,
-    validation_steps=50,
+    validation_steps=8,
     verbose=1
 )
 
