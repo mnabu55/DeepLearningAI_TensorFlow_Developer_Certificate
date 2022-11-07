@@ -11,11 +11,11 @@ zip_ref.close()
 
 import os
 
-train_horse_dir = os.path.join('../horse-or-human/horses')
+train_horse_dir = os.path.join('./horse-or-human/horses')
 train_horse_filenames = os.listdir(train_horse_dir)
 print("len(train_horse_filenames):", len(train_horse_filenames))
 
-train_human_dir = os.path.join('../horse-or-human/humans')
+train_human_dir = os.path.join('./horse-or-human/humans')
 train_human_filenames = os.listdir(train_human_dir)
 print("len(train_human_filenames):", len(train_human_filenames))
 
