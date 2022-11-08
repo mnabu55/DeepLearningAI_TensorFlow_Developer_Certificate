@@ -79,6 +79,8 @@ model.compile(loss='binary_crossentropy',
 # model summary
 model.summary()
 
+print(f"padded shape: {padded.shape}")
+
 # train the model
 num_epochs = 10
 model.fit(padded, training_labels_final, epochs=num_epochs,
