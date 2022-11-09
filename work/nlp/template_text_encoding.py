@@ -34,8 +34,8 @@ padded = pad_sequences(sequences, maxlen=max_length, truncating=trunc_type)
 
 # build a model
 model = tf.keras.models.Sequential([
-    tf.keras.layers.Embedding(vocab_size, embedded_dim, input_length=max_length),
-    tf.keras.layers.Flatten(),
+    tf.keras.layers.Embedding(vocab_size, embedded_dim),
+    tf.keras.layers.GlobalAveragePooling1D(),
     tf.keras.layers.Dense(6, activation='relu'),
     tf.keras.layers.Dense(1, activation='sigmoid')
 ])
