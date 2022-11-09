@@ -10,10 +10,10 @@ train_data, test_data = imdb['train'], imdb['test']
 
 # Parameters
 vocab_size = 10000
+oov_tok = "<OOV>"
 max_length = 120
 embedded_dim = 16
 trunc_type = 'post'
-oov_tok = "<OOV>"
 
 sentences = []
 
