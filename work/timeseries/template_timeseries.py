@@ -198,12 +198,11 @@ for windows in dataset.take(1):
 
 
 # create a model
-IO = tf.keras.layers.Dense(1, input_shape=[window_size])
 model = tf.keras.models.Sequential([
-    IO
+    tf.keras.layers.Dense(10, input_shape=[window_size], activation="relu"),
+    tf.keras.layers.Dense(10, activation="relu"),
+    tf.keras.layers.Dense(1)
 ])
-
-print(f"Layer weights: \n {IO.get_weights()}\n")
 
 # print summary
 model.summary()
@@ -215,4 +214,66 @@ model.compile(loss="mse",
 # train the model
 model.fit(dataset, epochs=100)
 
-print(f"Layer weights: \n {IO.get_weights()}\n")
+
+# Initialize a list
+forecast = []
+
+forecast_series = series[split_time - window_size:]
+
+# Use the model to predict data points per window size
+for time in range(len(forecast_series) - window_size):
+    forecast.append(model.predict(forecast_series[time:time + window_size][np.newaxis]))
+
+results = np.array(forecast).squeeze()
+
+plot_series(time_valid, (x_valid, results))
+
+
+# Compute the metrics
+print(tf.keras.metrics.mean_squared_error(x_valid, results).numpy())
+print(tf.keras.metrics.mean_absolute_error(x_valid, results).numpy())
+
+
+# model tune
+# Build the Model
+model_tune = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(10, input_shape=[window_size], activation="relu"),
+    tf.keras.layers.Dense(10, activation="relu"),
+    tf.keras.layers.Dense(1)
+])
+
+
+# Set the learning rate scheduler
+lr_schedule = tf.keras.callbacks.LearningRateScheduler(
+    lambda epoch: 1e-8 * 10**(epoch / 20))
+
+
+# Initialize the optimizer
+optimizer = tf.keras.optimizers.SGD(momentum=0.9)
+
+# Set the training parameters
+model_tune.compile(loss="mse", optimizer=optimizer)
+
+# Train the model
+history = model_tune.fit(dataset, epochs=100, callbacks=[lr_schedule])
+
+
+# Define the learning rate array
+lrs = 1e-8 * (10 ** (np.arange(100) / 20))
+
+# Set the figure size
+plt.figure(figsize=(10, 6))
+
+# Set the grid
+plt.grid(True)
+
+# Plot the loss in log scale
+plt.semilogx(lrs, history.history["loss"])
+
+# Increase the tickmarks size
+plt.tick_params('both', length=10, width=1, which='both')
+
+# Set the plot boundaries
+plt.axis([1e-8, 1e-3, 0, 300])
+
+plt.show()
