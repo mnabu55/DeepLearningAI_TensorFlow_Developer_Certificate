@@ -36,7 +36,9 @@ print("len(sentences): ", len(sentences))
 
 # Hyperparameters
 training_size = 20000
-vocab_size = 10000
+# vocab_size = 10000
+# vocab_size = 13000 # not so good
+vocab_size = 8000
 max_length = 32
 #embedding_dim = 16
 embedding_dim = 25
