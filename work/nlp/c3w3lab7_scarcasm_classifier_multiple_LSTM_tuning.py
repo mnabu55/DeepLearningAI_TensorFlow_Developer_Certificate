@@ -64,8 +64,8 @@ testing_labels = np.array(testing_labels)
 # build the model
 model = tf.keras.models.Sequential([
     tf.keras.layers.Embedding(vocab_size, embedding_dim, input_length=max_length),
-    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True)),
-    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim)),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True, dropout=0.2)),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, dropout=0.2)),
     tf.keras.layers.Dense(24, activation="relu"),
     tf.keras.layers.Dense(1, activation="sigmoid")
 ])
@@ -74,7 +74,7 @@ model = tf.keras.models.Sequential([
 model.summary()
 
 # compile the model
-adam = tf.keras.optimizers.Adam(learning_rate=1e-5,
+adam = tf.keras.optimizers.Adam(learning_rate=0.000008,
                                 beta_1=0.9, beta_2=0.999, amsgrad=False)
 
 model.compile(loss='binary_crossentropy',
