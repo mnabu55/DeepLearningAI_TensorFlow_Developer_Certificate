@@ -143,3 +143,7 @@ diff_moving_avg = diff_moving_avg[split_time - 365 - window_size:]
 diff_series = diff_series[split_time - 365:]
 
 plot_series(time_valid, (diff_series, diff_moving_avg))
+
+diff_moving_avg_plus_past = series[split_time - 365: -365] + diff_moving_avg
+
+plot_series(time_valid, (x_valid, diff_moving_avg_plus_past))
