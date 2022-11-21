@@ -4,6 +4,8 @@ cats_and_dogs_filtered/
 horse-or-human/
 validation-horse-or-human/
 
+my_dir/
+
 *.zip
 *.h5
 *.json
