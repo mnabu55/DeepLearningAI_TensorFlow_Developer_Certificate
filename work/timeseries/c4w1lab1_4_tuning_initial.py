@@ -83,12 +83,12 @@ shuffle_buffer_size = 1000
 dataset = windowed_dataset(x_train, window_size, batch_size, shuffle_buffer_size)
 
 model = tf.keras.models.Sequential([
-    tf.keras.layers.Dense(10, activation="relu", input_shape=[window_size]),
+    tf.keras.layers.Dense(24, activation="relu", input_shape=[window_size]),
     tf.keras.layers.Dense(10, activation="relu"),
     tf.keras.layers.Dense(1)
 ])
 
-optimizer = tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9)
+optimizer = tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.7)
 model.compile(loss="mse",
               optimizer=optimizer)
 
