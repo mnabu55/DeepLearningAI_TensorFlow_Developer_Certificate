@@ -185,7 +185,7 @@ class G:
     TIME = np.array(times)
     SERIES = np.array(series)
     SPLIT_TIME = 3000
-    WINDOW_SIZE = 100
+    WINDOW_SIZE = 40
     BATCH_SIZE = 32
     SHUFFLE_BUFFER_SIZE = 1000
 
