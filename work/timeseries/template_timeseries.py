@@ -179,7 +179,7 @@ class G:
     TIME = np.array(times)
     SERIES = np.array(series)
     SPLIT_TIME = 2500
-    WINDOW_SIZE = 256
+    WINDOW_SIZE = 512
     BATCH_SIZE = 256
     SHUFFLE_BUFFER_SIZE = 1000
 
@@ -271,7 +271,7 @@ def adjust_learning_rate(dataset):
 lr_history = adjust_learning_rate(train_set)
 
 plt.semilogx(lr_history.history["lr"], lr_history.history["loss"])
-plt.axis([1e-4, 1e-2, 0, 15])
+plt.axis([1e-4, 1e-1, 0, 15])
 plt.show()
 
 
