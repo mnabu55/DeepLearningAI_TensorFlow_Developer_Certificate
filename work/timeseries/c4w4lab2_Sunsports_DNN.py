@@ -59,6 +59,9 @@ def plot_series(x, y, format="-", start=0, end=None,
 
 # prepare data
 
+
+
+
 # initialize lists
 time_step = []
 sunspots = []
