@@ -185,7 +185,7 @@ class G:
     TIME = np.array(times)
     SERIES = np.array(series)
     SPLIT_TIME = 3000
-    WINDOW_SIZE = 50
+    WINDOW_SIZE = 20
     BATCH_SIZE = 32
     SHUFFLE_BUFFER_SIZE = 1000
 
@@ -285,9 +285,7 @@ lr_history = adjust_learning_rate(train_set)
 
 plt.semilogx(lr_history.history["lr"], lr_history.history["loss"])
 
-plt.axis([1e-8, 1e-3, 0, 100])
-plt.show()
-
+#plt.axis([1e-8, 1e-3, 0, 100])
 plt.axis([1e-5, 1e-3, 0, 100])
 plt.show()
 
@@ -296,7 +294,7 @@ def create_model():
     model = create_uncompiled_model()
 
     ### START CODE HERE
-    learning_rate = 1e-4
+    learning_rate = 6e-5
     optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,
                                         momentum=0.9)
     model.compile(loss=tf.keras.losses.Huber(),
