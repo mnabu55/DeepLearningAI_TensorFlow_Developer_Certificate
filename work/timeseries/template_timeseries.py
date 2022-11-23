@@ -179,7 +179,7 @@ class G:
     TIME = np.array(times)
     SERIES = np.array(series)
     SPLIT_TIME = 2500
-    WINDOW_SIZE = 64
+    WINDOW_SIZE = 256
     BATCH_SIZE = 256
     SHUFFLE_BUFFER_SIZE = 1000
 
@@ -220,15 +220,14 @@ def create_uncompiled_model():
     ### START CODE HERE
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv1D(filters=128, kernel_size=3,
+        tf.keras.layers.Conv1D(filters=128, kernel_size=9,
                                strides=1, padding="causal",
                                activation="relu",
                                input_shape=[G.WINDOW_SIZE, 1]),
-        tf.keras.layers.LSTM(64, return_sequences=True),
-        tf.keras.layers.LSTM(64),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
         tf.keras.layers.Dense(1)
     ])
-
     ### END CODE HERE
 
     return model
@@ -263,7 +262,7 @@ def adjust_learning_rate(dataset):
 
     ### END CODE HERE
 
-    history = model.fit(dataset, epochs=20, callbacks=[lr_schedule])
+    history = model.fit(dataset, epochs=100, callbacks=[lr_schedule])
 
     return history
 
@@ -280,7 +279,7 @@ def create_model():
     model = create_uncompiled_model()
 
     ### START CODE HERE
-    learning_rate = 6e-4
+    learning_rate = 6e-3
     optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,
                                         momentum=0.9)
     model.compile(loss=tf.keras.losses.Huber(),
