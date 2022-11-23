@@ -225,20 +225,22 @@ train_set = windowed_dataset(series_train, window_size=G.WINDOW_SIZE, batch_size
 def create_uncompiled_model():
     ### START CODE HERE
 
-    # model = tf.keras.models.Sequential([
-    #     tf.keras.layers.Conv1D(filters=64, kernel_size=3,
-    #                            strides=1, padding="causal",
-    #                            activation="relu",
-    #                            input_shape=[G.WINDOW_SIZE, 1]),
-    #     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
-    #     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
-    #     tf.keras.layers.Dense(1)
-    # ])
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Dense(30, input_shape=[G.WINDOW_SIZE], activation="relu"),
+        tf.keras.layers.Conv1D(filters=64, kernel_size=3,
+                               strides=1, padding="causal",
+                               activation="relu",
+                               input_shape=[G.WINDOW_SIZE, 1]),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
+        tf.keras.layers.Dense(30, activation="relu"),
         tf.keras.layers.Dense(10, activation="relu"),
         tf.keras.layers.Dense(1)
     ])
+    # model = tf.keras.models.Sequential([
+    #     tf.keras.layers.Dense(30, input_shape=[G.WINDOW_SIZE], activation="relu"),
+    #     tf.keras.layers.Dense(10, activation="relu"),
+    #     tf.keras.layers.Dense(1)
+    # ])
     ### END CODE HERE
 
     return model
