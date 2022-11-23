@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+import csv
+from dataclasses import dataclass
 
 
 def plot_series(time, series, format="-", start=0, end=None):
@@ -124,156 +126,205 @@ def noise(time, noise_level=1, seed=None):
     return noise
 
 
+def generate_time_series():
+    # The time dimension or the x-coordinate of the time series
+    time = np.arange(4 * 365 + 1, dtype="float32")
 
-# Generate the data
+    # Initial series is just a straight line with a y-intercept
+    y_intercept = 10
+    slope = 0.005
+    series = trend(time, slope) + y_intercept
 
-# Parameters
-time = np.arange(4 * 365 + 1, dtype="float32")
-baseline = 10
-amplitude = 40
-slope = 0.05
-noise_level = 5
+    # Adding seasonality
+    amplitude = 50
+    series += seasonality(time, period=365, amplitude=amplitude)
 
-# Create the series
-series = baseline + trend(time, slope) + seasonality(time, period=365, amplitude=amplitude)
+    # Adding some noise
+    noise_level = 3
+    series += noise(time, noise_level, seed=51)
 
-# Update with noise
-series += noise(time, noise_level, seed=42)
+    return time, series
 
-# Plot the results
-plot_series(time, series)
+
+def parse_data_from_file(filename):
+    """
+    :param filename:
+    :return:
+        times - time steps
+        series - measurements
+    """
+    times = []
+    series = []
+
+    with open(filename) as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+
+        # skip the header
+        next(reader)
+
+        i = 0
+        for row in reader:
+            times.append(i)
+            series.append(float(row[1]))
+            i += 1
+
+    return times, series
+
+
+
+@dataclass
+class G:
+    DATA_CSV = "./daily-min-temperatures.csv"
+    times, series = parse_data_from_file(DATA_CSV)
+    TIME = np.array(times)
+    SERIES = np.array(series)
+    SPLIT_TIME = 2500
+    WINDOW_SIZE = 64
+    BATCH_SIZE = 256
+    SHUFFLE_BUFFER_SIZE = 1000
+
+
+plot_series(G.TIME, G.SERIES)
 
 
 # Split the dataset
+def train_val_split(time, series, time_step=G.SPLIT_TIME):
 
-# Define the split time
-split_time = 1000
+    time_train = time[:time_step]
+    series_train = series[:time_step]
+    time_valid = time[time_step:]
+    series_valid = series[time_step:]
 
-# Get the train set
-time_train = time[:split_time]
-x_train = series[:split_time]
-
-# Get the validation set
-time_valid = time[split_time:]
-x_valid = series[split_time:]
+    return time_train, series_train, time_valid, series_valid
 
 
-# Parameters
-window_size = 20
-batch_size = 32
-shuffle_buffer_size = 1000
+# Split the dataset
+time_train, series_train, time_valid, series_valid = train_val_split(G.TIME, G.SERIES)
 
 
-def windowed_dataset(series, window_size, batch_size, shuffle_buffer):
-    # Generate a tf dataset from the series values
-    dataset = tf.data.Dataset.from_tensor_slices(series)
-
-    # window
-    dataset = dataset.window(window_size + 1, shift=1, drop_remainder=True)
-
-    # Flatten [1, 2, 3,...] -> [1 2 3 ...]
-    dataset = dataset.flat_map(lambda window: window.batch(window_size + 1))
-
-    # Create tuples
-    dataset = dataset.map(lambda window: (window[:-1], window[-1]))
-
-    # shuffle the window
-    dataset = dataset.shuffle(shuffle_buffer)
-
-    # create batches of windows
-    dataset = dataset.batch(batch_size).prefetch(1)
-
-    return dataset
+def windowed_dataset(series, window_size=G.WINDOW_SIZE, batch_size=G.BATCH_SIZE, shuffle_buffer=G.SHUFFLE_BUFFER_SIZE):
+    ds = tf.data.Dataset.from_tensor_slices(series)
+    ds = ds.window(window_size + 1, shift=1, drop_remainder=True)
+    ds = ds.flat_map(lambda w: w.batch(window_size + 1))
+    ds = ds.shuffle(shuffle_buffer)
+    ds = ds.map(lambda w: (w[:-1], w[-1]))
+    ds = ds.batch(batch_size).prefetch(1)
+    return ds
 
 
-dataset = windowed_dataset(x_train, window_size, batch_size, shuffle_buffer_size)
-
-# Print properties of a single batch
-for windows in dataset.take(1):
-  print(f'data type: {type(windows)}')
-  print(f'number of elements in the tuple: {len(windows)}')
-  print(f'shape of first element: {windows[0].shape}')
-  print(f'shape of second element: {windows[1].shape}')
+# Apply the transformation to the training set
+train_set = windowed_dataset(series_train, window_size=G.WINDOW_SIZE, batch_size=G.BATCH_SIZE, shuffle_buffer=G.SHUFFLE_BUFFER_SIZE)
 
 
+def create_uncompiled_model():
+    ### START CODE HERE
 
-# create a model
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Dense(10, input_shape=[window_size], activation="relu"),
-    tf.keras.layers.Dense(10, activation="relu"),
-    tf.keras.layers.Dense(1)
-])
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=128, kernel_size=3,
+                               strides=1, padding="causal",
+                               activation="relu",
+                               input_shape=[G.WINDOW_SIZE, 1]),
+        tf.keras.layers.LSTM(64, return_sequences=True),
+        tf.keras.layers.LSTM(64),
+        tf.keras.layers.Dense(1)
+    ])
 
-# print summary
-model.summary()
+    ### END CODE HERE
 
-# compile the model
-model.compile(loss="mse",
-              optimizer=tf.keras.optimizers.SGD(learning_rate=1e-6, momentum=0.9))
-
-# train the model
-model.fit(dataset, epochs=100)
-
-
-# Initialize a list
-forecast = []
-
-forecast_series = series[split_time - window_size:]
-
-# Use the model to predict data points per window size
-for time in range(len(forecast_series) - window_size):
-    forecast.append(model.predict(forecast_series[time:time + window_size][np.newaxis]))
-
-results = np.array(forecast).squeeze()
-
-plot_series(time_valid, (x_valid, results))
+    return model
 
 
-# Compute the metrics
-print(tf.keras.metrics.mean_squared_error(x_valid, results).numpy())
-print(tf.keras.metrics.mean_absolute_error(x_valid, results).numpy())
+# Test your uncompiled model
+uncompiled_model = create_uncompiled_model()
+
+try:
+    uncompiled_model.predict(train_set)
+except:
+    print("Your current architecture is incompatible with the windowed dataset, try adjusting it.")
+else:
+    print("Your current architecture is compatible with the windowed dataset! :)")
 
 
-# model tune
-# Build the Model
-model_tune = tf.keras.models.Sequential([
-    tf.keras.layers.Dense(10, input_shape=[window_size], activation="relu"),
-    tf.keras.layers.Dense(10, activation="relu"),
-    tf.keras.layers.Dense(1)
-])
+def adjust_learning_rate(dataset):
+    model = create_uncompiled_model()
+
+    lr_schedule = tf.keras.callbacks.LearningRateScheduler(
+        lambda epoch: 1e-4 * 10 ** (epoch / 20))
+
+    ### START CODE HERE
+
+    # Select your optimizer
+    optimizer = tf.keras.optimizers.SGD(momentum=0.9)
+
+    # Compile the model passing in the appropriate loss
+    model.compile(loss=tf.keras.losses.Huber(),
+                  optimizer=optimizer,
+                  metrics=["mae"])
+
+    ### END CODE HERE
+
+    history = model.fit(dataset, epochs=20, callbacks=[lr_schedule])
+
+    return history
 
 
-# Set the learning rate scheduler
-lr_schedule = tf.keras.callbacks.LearningRateScheduler(
-    lambda epoch: 1e-8 * 10**(epoch / 20))
+# Run the training with dynamic LR
+lr_history = adjust_learning_rate(train_set)
 
-
-# Initialize the optimizer
-optimizer = tf.keras.optimizers.SGD(momentum=0.9)
-
-# Set the training parameters
-model_tune.compile(loss="mse", optimizer=optimizer)
-
-# Train the model
-history = model_tune.fit(dataset, epochs=100, callbacks=[lr_schedule])
-
-
-# Define the learning rate array
-lrs = 1e-8 * (10 ** (np.arange(100) / 20))
-
-# Set the figure size
-plt.figure(figsize=(10, 6))
-
-# Set the grid
-plt.grid(True)
-
-# Plot the loss in log scale
-plt.semilogx(lrs, history.history["loss"])
-
-# Increase the tickmarks size
-plt.tick_params('both', length=10, width=1, which='both')
-
-# Set the plot boundaries
-plt.axis([1e-8, 1e-3, 0, 300])
-
+plt.semilogx(lr_history.history["lr"], lr_history.history["loss"])
+plt.axis([1e-4, 1e-2, 0, 15])
 plt.show()
+
+
+def create_model():
+    model = create_uncompiled_model()
+
+    ### START CODE HERE
+    learning_rate = 6e-4
+    optimizer = tf.keras.optimizers.SGD(learning_rate=learning_rate,
+                                        momentum=0.9)
+    model.compile(loss=tf.keras.losses.Huber(),
+                  optimizer=optimizer,
+                  metrics=["mae"])
+    ### END CODE HERE
+
+    return model
+
+
+# Save an instance of the model
+model = create_model()
+
+# Train it
+history = model.fit(train_set, epochs=50)
+
+
+def compute_metrics(true_series, forecast):
+    mse = tf.keras.metrics.mean_squared_error(true_series, forecast).numpy()
+    mae = tf.keras.metrics.mean_absolute_error(true_series, forecast).numpy()
+
+    return mse, mae
+
+
+def model_forecast(model, series, window_size):
+    ds = tf.data.Dataset.from_tensor_slices(series)
+    ds = ds.window(window_size, shift=1, drop_remainder=True)
+    ds = ds.flat_map(lambda w: w.batch(window_size))
+    ds = ds.batch(32).prefetch(1)
+    forecast = model.predict(ds)
+    return forecast
+
+
+# Compute the forecast for all the series
+forecast = model_forecast(model, G.SERIES, G.WINDOW_SIZE).squeeze()
+
+# Slice the forecast to get only the predictions for the validation set
+forecast = forecast[G.SPLIT_TIME - G.WINDOW_SIZE:-1]
+
+# Plot the forecast
+plt.figure(figsize=(10, 6))
+plot_series(time_valid, (series_valid, forecast))
+#plot_series(time_valid, forecast)
+
+
+mse, mae = compute_metrics(series_valid, forecast)
+print(f"mse: {mse:.2f}, mae: {mae:.2f} for forecast")
