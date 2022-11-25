@@ -20,6 +20,8 @@ model_1.compile(optimizer='Adam',
                 loss='sparse_categorical_crossentropy',
                 metrics=["accuracy"])
 
+# model_1.summary()
+
 model_1.fit(training_images, training_labels, epochs=5)
 
 model_1.evaluate(test_images, test_labels)
@@ -31,8 +33,6 @@ model_2 = tf.keras.models.Sequential([
     tf.keras.layers.MaxPooling2D(2, 2),
     tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
     tf.keras.layers.MaxPooling2D(2, 2),
-    tf.keras.layers.Conv2D(128, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D(2, 2),
     tf.keras.layers.Flatten(),
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(10, activation='softmax')
@@ -42,6 +42,8 @@ model_2 = tf.keras.models.Sequential([
 model_2.compile(optimizer='adam',
                 loss='sparse_categorical_crossentropy',
                 metrics=['accuracy'])
+
+model_2.summary()
 
 # train the model
 #model_2.fit(tf.expand_dims(training_images, axis=-1), training_labels, epochs=5)
