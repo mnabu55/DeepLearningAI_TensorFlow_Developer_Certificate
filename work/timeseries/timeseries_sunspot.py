@@ -3,6 +3,10 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import csv
 import requests
+import keras_tuner
+from keras_tuner import RandomSearch
+
+
 from dataclasses import dataclass
 
 
@@ -244,6 +248,43 @@ def create_uncompiled_model():
     ### END CODE HERE
 
     return model
+
+
+def build_model(hp):
+
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=64, kernel_size=3,
+                               strides=1, padding="causal",
+                               activation="relu",
+                               input_shape=[G.WINDOW_SIZE, 1]),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64, return_sequences=True)),
+        tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(64)),
+        tf.keras.layers.Dense(30, activation="relu"),
+        tf.keras.layers.Dense(
+            units=hp.Int('units', min_value=10, max_value=30, step=2),
+            activation="relu", input_shape=[G.WINDOW_SIZE]
+        ),
+        tf.keras.layers.Dense(10, activation="relu"),
+        tf.keras.layers.Dense(1)
+    ])
+
+    model.compile(loss="mse",
+                  optimizer=tf.keras.optimizers.SGD(
+                      hp.Choice('momentum',
+                                values=[.9, .7, .5, .3]),
+                      lr=6e-5
+                  ))
+    return model
+
+
+tuner = RandomSearch(build_model,
+                     objective='loss', max_trials=150,
+                     executions_per_trial=3, directory='my_dir',
+                     project_name='hello')
+
+tuner.search(train_set, epochs=100, verbose=0)
+
+print(tuner.results_summary())
 
 
 # Test your uncompiled model
