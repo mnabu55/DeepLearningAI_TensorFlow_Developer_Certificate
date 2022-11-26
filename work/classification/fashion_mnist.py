@@ -69,3 +69,5 @@ epochs = range(len(acc))    # Get number of epochs
 plt.plot(epochs, acc)
 plt.title('Training accuracy')
 plt.show()
+
+
