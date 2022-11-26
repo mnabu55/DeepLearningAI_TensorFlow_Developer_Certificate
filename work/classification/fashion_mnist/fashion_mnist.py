@@ -22,10 +22,19 @@ model_1.compile(optimizer='Adam',
 
 # model_1.summary()
 
-model_1.fit(training_images, training_labels, epochs=5)
+hist1 = model_1.fit(training_images, training_labels, epochs=5)
 
 model_1.evaluate(test_images, test_labels)
 
+import matplotlib.pyplot as plt
+
+acc = hist1.history['accuracy']
+loss = hist1.history['loss']
+
+epochs = range(len(acc))    # Get number of epochs
+plt.plot(epochs, acc)
+plt.title('Training accuracy')
+plt.show()
 
 # Create a model with Conv2D
 model_2 = tf.keras.models.Sequential([
@@ -47,8 +56,16 @@ model_2.summary()
 
 # train the model
 #model_2.fit(tf.expand_dims(training_images, axis=-1), training_labels, epochs=5)
-model_2.fit(training_images, training_labels, epochs=5)
+hist2 = model_2.fit(training_images, training_labels, epochs=5)
 
 # evaluate the model
 #model_2.evaluate(tf.expand_dims(test_images, axis=-1), test_labels)
 model_2.evaluate(test_images, test_labels)
+
+acc = hist2.history['accuracy']
+loss = hist2.history['loss']
+
+epochs = range(len(acc))    # Get number of epochs
+plt.plot(epochs, acc)
+plt.title('Training accuracy')
+plt.show()
