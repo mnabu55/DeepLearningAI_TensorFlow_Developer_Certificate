@@ -5,6 +5,7 @@ horse-or-human/
 validation-horse-or-human/
 
 my_dir/
+cert/
 
 *.zip
 *.h5
